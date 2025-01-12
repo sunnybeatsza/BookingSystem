@@ -2,9 +2,15 @@ import pyrebase
 import argparse
 import os
 from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials,auth
+
 
 load_dotenv()  # Load environment variables from .env file
 
+
+cred = credentials.Certificate(os.getenv("CREDENTIALS"))
+firebase_admin.initialize_app(cred)
 config = {
     "apiKey": os.getenv("FIREBASE_API_KEY"),
     "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
@@ -17,25 +23,51 @@ firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
 db = firebase.database()
 
+# Set custom claim (isAdmin)
+def set_admin_role(uid):
+    auth.set_custom_user_claims(uid, {"isAdmin": True})
+
+
+
 def login():
     email = input("Enter your email: ")
     password = input("Enter your password: ")
     print(f"Logging in with email: {email}")
     try:  
       auth.sign_in_with_email_and_password(email,password)
+     
     except Exception as error:
         print(f"There was an error{error}")
 
 def signup():
     email = input("Enter your email: ")
     password = input("Create a password: ")
+    role = input("Are you a peer or mentor: ")
+    username = input("create a username: ")
     print(f"Signing up with email: {email}")
 
     try:
       auth.create_user_with_email_and_password(email,password)
+      data = {"email": email,
+              "password":password,
+              "role":role,
+              "username":username,
+              }
+      if role == "peer": 
+        db.child("peers").push(data)
+      elif role == "mentor":
+          db.child("mentors").push(data)
+      elif role == "admin":
+          db.child("admins").push(data)
 
     except Exception as error:
         print(f"There was an error: {error}")
+
+
+
+def set_admin_user():
+    pass
+
 
 
 def main():
