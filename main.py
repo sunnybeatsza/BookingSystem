@@ -42,23 +42,26 @@ def login():
 def signup():
     email = input("Enter your email: ")
     password = input("Create a password: ")
+    name = input("Please enter your name: ")
     role = input("Are you a peer or mentor: ")
-    username = input("create a username: ")
-    print(f"Signing up with email: {email}")
+    username = input("Please create a username: ")
 
+    print(f"Signing up with email: {email}")
+    print("Sign up successful!")
     try:
       auth.create_user_with_email_and_password(email,password)
       data = {"email": email,
               "password":password,
               "role":role,
               "username":username,
+              "name":name,
+              "staus":"availabe",
               }
+      
       if role == "peer": 
         db.child("peers").push(data)
       elif role == "mentor":
           db.child("mentors").push(data)
-      elif role == "admin":
-          db.child("admins").push(data)
 
     except Exception as error:
         print(f"There was an error: {error}")
