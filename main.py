@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials,auth
+from collections.abc import Mapping, MutableMapping
+
 
 
 load_dotenv()  # Load environment variables from .env file
