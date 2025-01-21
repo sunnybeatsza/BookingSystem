@@ -87,7 +87,7 @@ def intiate_google_calendar_with_firebase(firebase_user_token):
         if not google_calendar_creds:
             # If no credentials exist, start the Google Calendar OAuth flow
             print("Google Calendar credentials not found. Initiating OAuth flow...")
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file('GOOGLE_CREDENTIALS', SCOPES)
             cred_google_calendar = flow.run_local_server(port=0)
 
             # Save credentials to Firebase database
