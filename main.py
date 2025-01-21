@@ -90,12 +90,12 @@ def intiate_google_calendar_with_firebase(firebase_user_token):
         print(f"Authenticated Firebase user: {user['email']}")
 
         # Retrieve Google Calendar credentials for the user from the Firebase database
-        google_calendar_creds = db.child("peers").child(user['uid']).child("google_calendar_creds").get().val()
+        google_calendar_creds = db.child("peers").child(user['uid']).child("GOOGLE_CREDENTIALS").get().val()
 
         if not google_calendar_creds:
             # If no credentials exist, start the Google Calendar OAuth flow
             print("Google Calendar credentials not found. Initiating OAuth flow...")
-            flow = InstalledAppFlow.from_client_secrets_file('GOOGLE_CREDENTIALS', SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(os.getenv('GOOGLE_CREDENTIALS'), SCOPES)
             cred_google_calendar = flow.run_local_server(port=0)
 
             # Save credentials to Firebase database
@@ -132,7 +132,7 @@ def get_calendar_events_with_firebase(firebase_user_token):
         
         events_result = service.events().list(
             calendarId='primary', timeMin=now,
-            maxResults=10, singleEvents=True,
+            maxResults=10,singleEvents=True,
             orderBy='startTime'
         ).execute()
 
