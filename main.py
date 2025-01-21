@@ -101,7 +101,7 @@ def intiate_google_calendar_with_firebase(firebase_user_token):
             cred_google_calendar = flow.run_local_server(port=0)
 
             # Save credentials to Firebase database
-            db.child("users").child(user['uid']).update({
+            db.child("peers").child(user['uid']).update({
                 "google_calendar_creds": cred_google_calendar.to_json()
             })
             return cred_google_calendar
