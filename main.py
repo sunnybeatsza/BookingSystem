@@ -6,16 +6,16 @@ import datetime as dt
 
 
 from dotenv import load_dotenv
-from google_calender import intiate_calendar,get_calendar,create_calendar_event
+from google_calender import create_calendar_event, get_session_data
 from bookings import get_mentors, book_mentor_session
 from firebase_admin import credentials,auth
 
 
 
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
-
-
 load_dotenv()  # Load environment variables from .env file
+
+cred = credentials.Certificate(os.getenv("CREDENTIALS"))
+firebase_admin.initialize_app(cred)
 
 config = {
     "apiKey": os.getenv("FIREBASE_API_KEY"),
@@ -78,6 +78,7 @@ def signup():
 
 
 def main():
+    firebase_user_token = None 
     parser = argparse.ArgumentParser(description="Authentication.")
     subparsers = parser.add_subparsers(dest="command")
 
@@ -113,8 +114,13 @@ def main():
         elif args.command == "get_mentors":
             get_mentors()
         elif args.command == "create_calendar_event":
+            with open("user_token.txt", "r") as file:
+                firebase_user_token = file.read()
             if firebase_user_token:
-                create_calendar_event(firebase_user_token)
+                session_data = get_session_data()
+                create_calendar_event(firebase_user_token, session_data)
+            else:
+                print("Please login to create a calendar event.")	
         else:
             parser.print_help()
 

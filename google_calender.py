@@ -7,11 +7,15 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import firebase_admin
+import webbrowser
+from firebase_admin import credentials,auth
 
 import pyrebase
 import os
 
 load_dotenv()
+
 
 config = {
     "apiKey": os.getenv("FIREBASE_API_KEY"),
@@ -23,10 +27,11 @@ config = {
 
 firebase = pyrebase.initialize_app(config)
 
-auth = firebase.auth()
+pyrebase_auth = firebase.auth()
+
 db = firebase.database()
 
-SCOPES = ["https://www.googleapis.com/auth/calender"]
+SCOPES = [ "https://www.googleapis.com/auth/calendar.events"]
 
 def intiate_calendar(firebase_user_token):
     """
@@ -96,8 +101,58 @@ def get_calendar(firebase_user_token):
     except Exception as error:
         print(f"An error occurred: {error}")
 
+def get_session_data():
+    """
+    Retrieve session data from the user.
+    # """
+    # summary = input("Enter the event summary: ")
+    # location = input("Enter the event location: ")
+    # description = input("Enter the event description: ")
+    # start_date = input("Enter the event start date (YYYY-MM-DD): ")
+    # start_time = input("Enter the event start time (HH:MM): ")
+    # end_date = input("Enter the event end date (YYYY-MM-DD): ")
+    # end_time = input("Enter the event end time (HH:MM): ")
 
-def create_calendar_event(firebase_user_token):
+    #Generate sample data
+    summary = "Mentor Session"  
+    location = "Online"
+    description = "Mentor session with mentor"
+    start_date = "2025-01-24"
+    start_time = "09:00"
+    end_date = "2025-01-24"
+    end_time = "10:00"
+
+
+    session_data = {
+    'summary': 'Google I/O 2015',
+    'location': '800 Howard St., San Francisco, CA 94103',
+    'description': 'A chance to hear more about Google\'s developer products.',
+    'start': {
+        'dateTime': '2025-01-28T09:00:00-07:00',
+        'timeZone': 'America/Los_Angeles',
+    },
+    'end': {
+        'dateTime': '2025-01-28T17:00:00-07:00',
+        'timeZone': 'America/Los_Angeles',
+    },
+    'recurrence': [
+        'RRULE:FREQ=DAILY;COUNT=2'
+    ],
+    'attendees': [
+        {'email': 'makgerutumisho55@gmail.com'},
+        {'email': 'momakgejhb024@student.wethinkcode.co.za'},
+    ],
+    'reminders': {
+        'useDefault': False,
+        'overrides': [
+        {'method': 'email', 'minutes': 24 * 60},
+        {'method': 'popup', 'minutes': 10},
+        ],
+    },
+    }
+    return session_data
+
+def create_calendar_event(firebase_user_token, session_data):
     """
     Create a new Google Calendar event for a user authenticated via Firebase.
     """
@@ -110,25 +165,11 @@ def create_calendar_event(firebase_user_token):
         # Use the credentials to access Google Calendar API
         service = build('calendar', 'v3', credentials=creds)
 
-        event = {
-            'summary': 'Test Event',
-            'location': 'Online',
-            'description': 'This is a test event.',
-            'start': {
-                'dateTime': '2021-10-10T09:00:00-07:00',
-                'timeZone': 'America/Los_Angeles',
-            },
-            'end': {
-                'dateTime': '2021-10-10T17:00:00-07:00',
-                'timeZone': 'America/Los_Angeles',
-            },
-            'attendees': [
-                {'email': 'djsunshineofficial@gmail.com'},	
-            ], 
-        }
+        event = session_data
 
         event = service.events().insert(calendarId='primary', body=event).execute()
         print(f"Event created: {event.get('htmlLink')}")
+        webbrowser.open(event.get('htmlLink'))
 
     except Exception as error:
         print(f"An error occurred: {error}")
