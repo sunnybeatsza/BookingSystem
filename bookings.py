@@ -1,24 +1,35 @@
-from firebase_config import firebase_client, intialize_firebase
 from datetime import datetime
-intialize_firebase()
+import pyrebase
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+config = {
+    "apiKey": os.getenv("FIREBASE_API_KEY"),
+    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+    "databaseURL": os.getenv("FIREBASE_DATABASE_URL"),
+    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+    "serviceAccount":os.getenv("CREDENTIALS")
+}
+
+
+
+firebase = pyrebase.initialize_app(config)
+db = firebase.database()
 
 #Fetch and display a list of available mentors
 def get_mentors():
     try:
-        user_ref = firebase_client().collection('users')
-        users = user_ref.get()
-
+        users = db.child("mentors").get()
         if users:
             for user in users:
-                user_data = user.to_dict()
-                if  user_data['role'] == 'peer':
-                    print(f"Name: {user_data['name']}, Email: {user_data['email']}, Role: {user_data['role']}")
+                user_data = user.val()
+                if  user_data['role'] == 'mentor':
+                    print(f"Name: {user_data['name']}, Email: {user_data['email']}, Role: {user_data['role']}, Status: {user_data['status']}")
         else:
             print(f"No users found. ")
 
-
-    
     except Exception as e:
         print(f"Error occured: {e}")
 
@@ -26,27 +37,23 @@ def get_mentors():
 
 def book_mentor_session(user_email, mentor_email, session_time):
     try:
-        mentor_ref = firebase_client().collection('users')
-        mentor = mentor_ref.where("email", "==", mentor_email).get()
-        
-        if mentor:
-            mentor_data = mentor[0].to_dict()
-            mentor_name = mentor_data['email']
-            
-            
-            session_ref = firebase_client().collection('sessions').add({
+        mentors = db.child("mentors").order_by_child(user_email).equal_to(mentor_email).get()
+        if mentors.each():
+            for mentor in mentors.each():
+                mentor_data = mentor.val()
+                print(f"Mentor found: {mentor_data['name']}")
+                session_time = datetime.utcnow().isoformat() + 'Z'
+            data = {
                 'user_email': user_email,
                 'mentor_id': mentor_email,
-                'mentor_name': mentor_name,
                 'session_time': session_time,
                 'status': 'scheduled'
-            })
-            print(f"Session scheduled with {mentor_name} at {session_time}.")
+            }
+            db.child("sessions").push(data)
+            print(f"Session scheduled with {mentor_data['name']} at {session_time}.")
         else:
             print("Mentor not found.")
     
     except Exception as e:
         print(f"Error occurred: {e}")
 
-get_mentors()
-book_mentor_session("kembosean7@gmail.com", "davidmalan@gmail.com","14:00")

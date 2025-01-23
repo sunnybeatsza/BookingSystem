@@ -1,7 +1,7 @@
 import os.path
 import datetime as dt
-from main import config
 
+from dotenv import load_dotenv
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -9,6 +9,17 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 import pyrebase
+import os
+
+load_dotenv()
+
+config = {
+    "apiKey": os.getenv("FIREBASE_API_KEY"),
+    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+    "databaseURL": os.getenv("FIREBASE_DATABASE_URL"),
+    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+}
+
 
 firebase = pyrebase.initialize_app(config)
 

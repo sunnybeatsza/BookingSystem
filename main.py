@@ -4,6 +4,7 @@ import os
 import firebase_admin
 import datetime as dt
 
+
 from dotenv import load_dotenv
 from google_calender import intiate_calendar,get_calendar,create_calendar_event
 from bookings import get_mentors, book_mentor_session
@@ -16,9 +17,6 @@ SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 load_dotenv()  # Load environment variables from .env file
 
-
-cred = credentials.Certificate(os.getenv("CREDENTIALS"))
-firebase_admin.initialize_app(cred)
 config = {
     "apiKey": os.getenv("FIREBASE_API_KEY"),
     "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
@@ -64,13 +62,15 @@ def signup():
               "password":password,
               "role":role,
               "name":name,
-              "staus":"availabe",
+              "status":"availabe",
               }
       
       if role == "peer": 
         db.child("peers").push(data)
+        print("Peer account created successfully.")
       elif role == "mentor":
-          db.child("mentors").push(data)
+        db.child("mentors").push(data)
+        print("Mentor account created successfully.")
 
     except Exception as error:
         print(f"There was an error: {error}")
@@ -93,6 +93,9 @@ def main():
     # Create calendar event command
     subparsers.add_parser("create_calendar_event", help="create a new calendar event")
 
+    # Get available mentors
+    subparsers.add_parser("get_mentors", help="get available mentors")
+
     args = parser.parse_args()
     
     if args.command == "login":
@@ -107,12 +110,13 @@ def main():
                 firebase_user_token = file.read()
             if firebase_user_token:
                 (firebase_user_token)
+        elif args.command == "get_mentors":
+            get_mentors()
         elif args.command == "create_calendar_event":
             if firebase_user_token:
                 create_calendar_event(firebase_user_token)
         else:
             parser.print_help()
-
 
 if __name__ == "__main__":
     main()
