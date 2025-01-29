@@ -6,7 +6,7 @@ import datetime as dt
 
 
 from dotenv import load_dotenv
-from google_calender import create_calendar_event, get_session_data
+from google_calender import create_calendar_event, get_session_data, get_calendar
 from bookings import get_mentors, book_mentor_session
 from firebase_admin import credentials,auth
 
@@ -49,6 +49,13 @@ def login():
         print(f"There was an error: {error}")
         return None
 
+def logout():
+    print(f"Logging out...")
+    try:
+        os.remove("user_token.txt")
+        print("Logout successful.")
+    except Exception as error:
+        print(f"There was an error: {error}")
 def signup():
     email = input("Enter your email: ")
     password = input("Create a password: ")
@@ -85,8 +92,17 @@ def main():
     # Login command
     subparsers.add_parser("login", help="login to your account")
 
+    # Logout command
+    subparsers.add_parser("logout",help="Logout of the application")
+
     # Signup command
     subparsers.add_parser("signup", help="sign up using email and password")
+
+    #View Bookings command
+    subparsers.add_parser("view_bookings", help="view confirmed bookings")
+
+    #Cancel Booking command
+    subparsers.add_parser("cancel_booking",help="cancel a booking on the calendar")
 
     # Get calendar events command
     subparsers.add_parser("get_calendar_events", help="get upcoming calendar events")
@@ -107,10 +123,15 @@ def main():
         signup()
     else:
         if args.command == "get_calendar_events":
-            with open("user_token.txt", "r") as file:
-                firebase_user_token = file.read()
-            if firebase_user_token:
-                (firebase_user_token)
+            if os.path.exists("user_token.txt"):
+                with open("user_token.txt", "r") as file:
+                    firebase_user_token = file.read()
+                if firebase_user_token:
+                    get_calendar(firebase_user_token)
+                else:
+                    print("Please login to view calendar events.")
+            else:
+                print("Please login to view calendar events.")
         elif args.command == "get_mentors":
             get_mentors()
         elif args.command == "create_calendar_event":
@@ -120,7 +141,10 @@ def main():
                 session_data = get_session_data()
                 create_calendar_event(firebase_user_token, session_data)
             else:
-                print("Please login to create a calendar event.")	
+                print("Please login to create a calendar event.")
+
+        elif args.command == "logout":
+            logout()	
         else:
             parser.print_help()
 
