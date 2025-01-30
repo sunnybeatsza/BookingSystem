@@ -6,7 +6,7 @@ import datetime as dt
 
 
 from dotenv import load_dotenv
-from google_calender import create_calendar_event, get_session_data, get_calendar
+from google_calender import create_calendar_event, get_session_data, get_calendar,cancel_booking
 from bookings import get_mentors, book_mentor_session
 from firebase_admin import credentials,auth
 
@@ -145,6 +145,18 @@ def main():
 
         elif args.command == "logout":
             logout()	
+        
+        elif args.command == "cancel_booking":
+            if os.path.exists("user_token.txt"):
+                with open("user_token.txt", "r") as file:
+                    firebase_user_token = file.read()
+                if firebase_user_token:
+                    event_id = input("Enter the event ID to cancel: ")
+                    cancel_booking(firebase_user_token, event_id)
+                else:
+                    print("Please login to cancel a booking.")
+            else:
+                print("Please login to cancel a booking.")
         else:
             parser.print_help()
 

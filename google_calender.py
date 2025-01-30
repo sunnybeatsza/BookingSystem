@@ -173,3 +173,26 @@ def create_calendar_event(firebase_user_token, session_data):
 
     except Exception as error:
         print(f"An error occurred: {error}")
+
+def get_event_id(firebase_user_token, event_summary):
+    pass
+
+
+def cancel_booking(firebase_user_token, event_id):
+    """
+    Cancel a Google Calendar event for a user authenticated via Firebase.
+    """
+    try:
+        creds = intiate_calendar(firebase_user_token)
+        if not creds:
+            print("Unable to retrieve Google Calendar credentials.")
+            return
+
+        # Use the credentials to access Google Calendar API
+        service = build('calendar', 'v3', credentials=creds)
+
+        service.events().delete(calendarId='primary', eventId=event_id).execute()
+        print(f"Event deleted: {event_id}")
+
+    except Exception as error:
+        print(f"An error occurred: {error}")
