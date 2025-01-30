@@ -147,14 +147,11 @@ def main():
             logout()	
         
         elif args.command == "cancel_booking":
-            if os.path.exists("user_token.txt"):
-                with open("user_token.txt", "r") as file:
-                    firebase_user_token = file.read()
-                if firebase_user_token:
-                    event_id = input("Enter the event ID to cancel: ")
-                    cancel_booking(firebase_user_token, event_id)
-                else:
-                    print("Please login to cancel a booking.")
+            with open("user_token.txt", "r") as file:
+                firebase_user_token = file.read()
+            if firebase_user_token:
+                event_name = input("Enter the event name to cancel: ")
+                cancel_booking(firebase_user_token, event_name)
             else:
                 print("Please login to cancel a booking.")
         else:

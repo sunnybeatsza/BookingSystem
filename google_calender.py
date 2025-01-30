@@ -104,51 +104,32 @@ def get_calendar(firebase_user_token):
 def get_session_data():
     """
     Retrieve session data from the user.
-    # """
-    # summary = input("Enter the event summary: ")
-    # location = input("Enter the event location: ")
-    # description = input("Enter the event description: ")
-    # start_date = input("Enter the event start date (YYYY-MM-DD): ")
-    # start_time = input("Enter the event start time (HH:MM): ")
-    # end_date = input("Enter the event end date (YYYY-MM-DD): ")
-    # end_time = input("Enter the event end time (HH:MM): ")
-
-    #Generate sample data
-    summary = "Mentor Session"  
-    location = "Online"
-    description = "Mentor session with mentor"
-    start_date = "2025-01-24"
-    start_time = "09:00"
-    end_date = "2025-01-24"
-    end_time = "10:00"
+    """
+    summary = input("Enter the event summary: ")
+    location = input("Enter the event location: ")
+    description = input("Enter the event description: ")
+    start_date = input("Enter the event start date (YYYY-MM-DD): ")
+    start_time = input("Enter the event start time (HH:MM): ")
+    end_date = input("Enter the event end date (YYYY-MM-DD): ")
+    end_time = input("Enter the event end time (HH:MM): ")
 
 
     session_data = {
-    'summary': 'Google I/O 2015',
-    'location': '800 Howard St., San Francisco, CA 94103',
-    'description': 'A chance to hear more about Google\'s developer products.',
+    'summary': summary,
+    'location': location,
+    'description': description,	
     'start': {
-        'dateTime': '2025-01-28T09:00:00-07:00',
+        'dateTime': start_date + 'T' + start_time + ':00-07:00',
         'timeZone': 'America/Los_Angeles',
     },
     'end': {
-        'dateTime': '2025-01-28T17:00:00-07:00',
+        'dateTime': end_date + 'T' + end_time + ':00-07:00',
         'timeZone': 'America/Los_Angeles',
     },
-    'recurrence': [
-        'RRULE:FREQ=DAILY;COUNT=2'
-    ],
     'attendees': [
         {'email': 'makgerutumisho55@gmail.com'},
         {'email': 'momakgejhb024@student.wethinkcode.co.za'},
     ],
-    'reminders': {
-        'useDefault': False,
-        'overrides': [
-        {'method': 'email', 'minutes': 24 * 60},
-        {'method': 'popup', 'minutes': 10},
-        ],
-    },
     }
     return session_data
 
@@ -167,18 +148,27 @@ def create_calendar_event(firebase_user_token, session_data):
 
         event = session_data
 
-        event = service.events().insert(calendarId='primary', body=event).execute()
+        event = service.events().insert(calendarId='primary',sendNotifications=True, body=event).execute()
         print(f"Event created: {event.get('htmlLink')}")
         webbrowser.open(event.get('htmlLink'))
 
     except Exception as error:
         print(f"An error occurred: {error}")
 
-def get_event_id(firebase_user_token, event_summary):
-    pass
+def get_event_id_by_name(service, event_name):
+    now = dt.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    events_result = service.events().list(calendarId='primary', timeMin=now,
+                                          maxResults=10, singleEvents=True,
+                                          orderBy='startTime').execute()
+    events = events_result.get('items', [])
+
+    for event in events:
+        if event['summary'] == event_name:
+            return event['id']
+    return None
 
 
-def cancel_booking(firebase_user_token, event_id):
+def cancel_booking(firebase_user_token, event_name):
     """
     Cancel a Google Calendar event for a user authenticated via Firebase.
     """
@@ -190,9 +180,14 @@ def cancel_booking(firebase_user_token, event_id):
 
         # Use the credentials to access Google Calendar API
         service = build('calendar', 'v3', credentials=creds)
-
-        service.events().delete(calendarId='primary', eventId=event_id).execute()
-        print(f"Event deleted: {event_id}")
+        event_id = get_event_id_by_name(service, event_name)
+        if event_id:
+            service.events().delete(calendarId='primary', sendNotifications=True, eventId=event_id).execute()
+            print(f"Event '{event_name}' cancelled successfully.")
+        else:
+            print(f"Event '{event_name}' not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     except Exception as error:
         print(f"An error occurred: {error}")
